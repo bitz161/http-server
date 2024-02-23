@@ -5,9 +5,9 @@ const PORT = 3000;
 const server = http.createServer();
 
 const friends = [
-  { id: 1, name: "Josue" },
-  { id: 2, name: "Aguilor" },
-  { id: 3, name: "Garcia" },
+  { id: 0, name: "Josue" },
+  { id: 1, name: "Aguilor" },
+  { id: 2, name: "Garcia" },
 ];
 
 server.on("request", (req, res) => {
@@ -15,7 +15,20 @@ server.on("request", (req, res) => {
   //example: localhost:3000/friends/2
   const items = req.url.split("/");
 
-  if (items[1] === "friends") {
+  if (req.method === "POST" && items[1] === "friends") {
+    req.on("data", (data) => {
+      //only accept string so need to convert it
+      const friend = data.toString();
+
+      console.log("Request:", friend);
+
+      //convert the data gathered to json
+      friends.push(JSON.parse(friend));
+    });
+
+    //after posting, this code will return what they post it back
+    req.pipe(res);
+  } else if (req.method === "GET" && items[1] === "friends") {
     res.statusCode = 200;
     res.setHeader("Content-Type", "application/json");
     if (items.length === 3) {
@@ -25,7 +38,7 @@ server.on("request", (req, res) => {
     } else {
       res.end(JSON.stringify(friends));
     }
-  } else if (items[1] === "messages") {
+  } else if (req.method === "GET" && items[1] === "messages") {
     res.setHeader("Content-Type", "text/html");
     res.write("<html>");
     res.write("<body>");
